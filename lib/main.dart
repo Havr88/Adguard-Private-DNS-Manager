@@ -28,6 +28,7 @@ import 'package:adguard_home_manager/providers/rewrite_rules_provider.dart';
 import 'package:adguard_home_manager/providers/dhcp_provider.dart';
 import 'package:adguard_home_manager/providers/status_provider.dart';
 import 'package:adguard_home_manager/providers/servers_provider.dart';
+import 'package:adguard_home_manager/providers/private_dns_provider.dart';
 import 'package:adguard_home_manager/constants/colors.dart';
 import 'package:adguard_home_manager/config/globals.dart';
 import 'package:adguard_home_manager/config/theme.dart';
@@ -63,6 +64,7 @@ void main() async {
   final RewriteRulesProvider rewriteRulesProvider = RewriteRulesProvider();
   final DnsProvider dnsProvider = DnsProvider();
   final LogsProvider logsProvider = LogsProvider();
+  final PrivateDnsProvider privateDnsProvider = PrivateDnsProvider();
 
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   if (Platform.isAndroid) {
@@ -116,6 +118,18 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: ((context) => dnsProvider)
+        ),
+        ChangeNotifierProvider(
+          create: ((context) => privateDnsProvider)
+        ),
+        ChangeNotifierProxyProvider<ServersProvider, PrivateDnsProvider>(
+          create: (context) => privateDnsProvider,
+          update: (context, servers, privateDns) {
+            if (servers.selectedServer != null) {
+              privateDns!.initializeClient(servers.selectedServer!);
+            }
+            return privateDns!;
+          },
         ),
         ChangeNotifierProxyProvider2<ServersProvider, StatusProvider, ClientsProvider>(
           create: (context) => clientsProvider, 
